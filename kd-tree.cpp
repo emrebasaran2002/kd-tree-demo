@@ -37,7 +37,7 @@ KdTree::Node::Node(
             rect_t rect_1 {rect.left, rect.top, rect.width, this->limit - rect.top};
             this->child_1 = new Node {rect_1, begin, begin + m, false};
 
-            rect_t rect_2 {rect.left, this->limit, rect.width, this->limit - rect.top};
+            rect_t rect_2 {rect.left, this->limit, rect.width, rect.height - rect_1.height};
             this->child_2 = new Node {rect_2, begin + m, end, false};
         } else {
             std::sort(begin, end, [](point_t p1, point_t p2) { return p1.x < p2.x; });
@@ -47,7 +47,7 @@ KdTree::Node::Node(
             rect_t rect_1 {rect.left, rect.top, this->limit - rect.left, rect.height};
             this->child_1 = new Node {rect_1, begin, begin + m, true};
 
-            rect_t rect_2 {this->limit, rect.top, this->limit - rect.left, rect.height};
+            rect_t rect_2 {this->limit, rect.top, rect.width - rect_1.width, rect.height};
             this->child_2 = new Node {rect_2, begin + m, end, true};
         }
     }
