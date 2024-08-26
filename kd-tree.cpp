@@ -109,15 +109,54 @@ KdTree& KdTree::operator=(KdTree&& other) noexcept {
     return *this;
 }
 
-// ----------------------- Operations ----------------------- //
+// ----------------------- Contains ----------------------- //
 
 bool KdTree::contains(point_t point) const {
-    // TODO
+    if (this->root != nullptr && this->root->rect.contains(point)) {
+        return this->root->contains(point);
+    }
     return false;
 }
 
+bool KdTree::Node::contains(point_t point) const {
+    if (this->isLeaf) {
+        return this->point == point;
+    } else {
+        bool whichChild;
+        if (this->isHorizontal) {
+            whichChild = point.y < this->limit;
+        } else {
+            whichChild = point.x < this->limit;
+        }
+        if (whichChild) {
+            return this->child_1->contains(point);
+        } else {
+            return this->child_2->contains(point);
+        }
+    }
+}
+
+// ----------------------- Range Search ----------------------- //
+
 std::vector<point_t> KdTree::rangeSearch(rect_t rect) const {
     std::vector<point_t> points;
-    // TODO
+    if (this->root != nullptr && this->root->rect.intersects(rect)) {
+        this->root->rangeSearch(rect, points);
+    }
     return points;
+}
+
+void KdTree::Node::rangeSearch(rect_t rect, std::vector<point_t>& points) const {
+    if (this->isLeaf) {
+        if (rect.contains(this->point)) {
+            points.push_back(this->point);
+        }
+    } else {
+        if (this->child_1->rect.intersects(rect)) {
+            this->child_1->rangeSearch(rect, points);
+        }
+        if (this->child_2->rect.intersects(rect)) {
+            this->child_2->rangeSearch(rect, points);
+        }
+    }
 }

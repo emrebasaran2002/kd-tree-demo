@@ -22,7 +22,10 @@ class KdTree final {
                 };
             };
 
-            // Precondition: begin/end must be a valid, non-empty range.
+            // Preconditions:
+            // - begin/end must determine a valid, non-empty range.
+            // - rect must contain all the points in the range.
+            // - all points must have distinct x and y coordinates.
             Node(
                 rect_t rect,
                 std::vector<point_t>::iterator begin,
@@ -31,9 +34,14 @@ class KdTree final {
             );
 
             Node(const Node& node);
+            Node& operator=(const Node&) = delete;
             ~Node();
 
-            Node& operator=(const Node&) = delete;
+            // Precondition: this->rect contains point
+            bool contains(point_t point) const;
+
+            // Precondition: this->rect intersects rect
+            void rangeSearch(rect_t rect, std::vector<point_t>& points) const;
         };
 
         Node* root;
