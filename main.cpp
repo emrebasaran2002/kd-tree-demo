@@ -202,6 +202,56 @@ void test_move_ctor(void) {
     }
 }
 
+void test_copy_assignment_operator(void) {
+    // Simple copy-and-swap implementation, only one test case is sufficient.
+    // Also does a self-assignment, for branch coverage.
+
+    rect_t rect {0, 0, 5, 5};
+    KdTree tree1 {rect, std::vector<point_t> {
+        point_t {0, 0},
+        point_t {1, 1},
+        point_t {2, 2},
+        point_t {3, 3},
+        point_t {4, 4}
+    }};
+    KdTree tree2 {rect, std::vector<point_t>{
+        point_t {4, 0},
+        point_t {3, 1},
+        point_t {2, 2},
+        point_t {1, 3},
+        point_t {0, 4}
+    }};
+
+    tree2 = tree2;
+    tree1 = tree2;
+
+    assert(!tree1.contains(point_t{2, 3}));
+    assert(!tree2.contains(point_t{2, 3}));
+    assert(tree1.contains(point_t{1, 3}));
+    assert(tree2.contains(point_t{1, 3}));
+
+    rect_t query1 {1, 0, 2, 4};
+    std::vector<point_t> answer1 {point_t{1, 3}, point_t{2, 2}};
+    assert_same_set(tree1.rangeSearch(query1), answer1);
+    assert_same_set(tree2.rangeSearch(query1), answer1);
+
+    rect_t query2 {2, -1, 3, 3};
+    std::vector<point_t> answer2 {point_t{3, 1}, point_t{4, 0}};
+    assert_same_set(tree1.rangeSearch(query2), answer2);
+    assert_same_set(tree2.rangeSearch(query2), answer2);
+
+    rect_t query3 {-1, -1, 6, 6};
+    std::vector<point_t> answer3 {
+        point_t{0, 4},
+        point_t{1, 3},
+        point_t{2, 2},
+        point_t{3, 1},
+        point_t{4, 0}
+    };
+    assert_same_set(tree1.rangeSearch(query3), answer3);
+    assert_same_set(tree2.rangeSearch(query3), answer3);
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("test_empty_kdtree", &test_empty_kdtree);
@@ -210,6 +260,7 @@ int main(void) {
     tests.emplace_back("test_multiple_points_kdtree_2", &test_multiple_points_kdtree_2);
     tests.emplace_back("test_copy_ctor", &test_copy_ctor);
     tests.emplace_back("test_move_ctor", &test_move_ctor);
+    tests.emplace_back("test_copy_assignment_operator", &test_copy_assignment_operator);
 
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
