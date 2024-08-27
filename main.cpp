@@ -252,6 +252,34 @@ void test_copy_assignment_operator(void) {
     assert_same_set(tree2.rangeSearch(query3), answer3);
 }
 
+void test_move_assignment_operator(void) {
+    rect_t rect {0, 0, 5, 5};
+
+    KdTree kd {rect, std::vector<point_t>{
+        point_t{1, 1},
+        point_t{3, 3}
+    }};
+    KdTree tmp {rect, std::vector<point_t>{
+        point_t{4, 1},
+        point_t{2, 0},
+        point_t{1, 4},
+        point_t{0, 2},
+        point_t{3, 3}
+    }};
+
+    kd = std::move(tmp);
+
+    assert(kd.contains(point_t{2, 0}));
+    assert(kd.contains(point_t{1, 4}));
+    assert(!kd.contains(point_t{1, 3}));
+    assert(!kd.contains(point_t{3, 0}));
+
+    assert_same_set(kd.rangeSearch(rect_t{0, 0, 4, 4}),
+                    std::vector<point_t>{point_t{0, 2}, point_t{2, 0}, point_t{3, 3}});
+    assert_same_set(kd.rangeSearch(rect_t{1, 2, 3, 3}),
+                    std::vector<point_t>{point_t{1, 4}, point_t{3, 3}});
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("test_empty_kdtree", &test_empty_kdtree);
@@ -261,6 +289,7 @@ int main(void) {
     tests.emplace_back("test_copy_ctor", &test_copy_ctor);
     tests.emplace_back("test_move_ctor", &test_move_ctor);
     tests.emplace_back("test_copy_assignment_operator", &test_copy_assignment_operator);
+    tests.emplace_back("test_move_assignment_operator", &test_move_assignment_operator);
 
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
