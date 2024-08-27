@@ -167,6 +167,41 @@ void test_copy_ctor(void) {
     }
 }
 
+void test_move_ctor(void) {
+    rect_t rect {0, 0, 5, 5};
+
+    /* Empty case */ {
+        KdTree tmp {rect, std::vector<point_t>{}};
+        KdTree kd {std::move(tmp)};
+
+        assert(!kd.contains(point_t{2, 2}));
+        assert(!kd.contains(point_t{0, 4}));
+
+        assert(kd.rangeSearch(rect_t{3, 3, 10, 10}).size() == 0);
+        assert(kd.rangeSearch(rect_t{-2, -1, 5, 7}).size() == 0);
+    }
+
+    /* Non-empty case */ {
+        KdTree tmp {rect, std::vector<point_t>{
+            point_t{3, 1},
+            point_t{0, 0},
+            point_t{2, 3},
+            point_t{1, 4}
+        }};
+        KdTree kd {std::move(tmp)};
+
+        assert(kd.contains(point_t{0, 0}));
+        assert(kd.contains(point_t{1, 4}));
+        assert(!kd.contains(point_t{2, 1}));
+        assert(!kd.contains(point_t{4, 4}));
+
+        assert_same_set(kd.rangeSearch(rect_t{2, 0, 2, 3}),
+                        std::vector<point_t>{point_t{3, 1}});
+        assert_same_set(kd.rangeSearch(rect_t{0, 1, 3, 4}),
+                        std::vector<point_t>{point_t{2, 3}, point_t{1, 4}});
+    }
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("test_empty_kdtree", &test_empty_kdtree);
@@ -174,6 +209,7 @@ int main(void) {
     tests.emplace_back("test_multiple_points_kdtree_1", &test_multiple_points_kdtree_1);
     tests.emplace_back("test_multiple_points_kdtree_2", &test_multiple_points_kdtree_2);
     tests.emplace_back("test_copy_ctor", &test_copy_ctor);
+    tests.emplace_back("test_move_ctor", &test_move_ctor);
 
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
