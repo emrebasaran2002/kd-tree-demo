@@ -126,12 +126,54 @@ void test_multiple_points_kdtree_2(void) {
     assert(kd.rangeSearch(rect_t{-40, 40, 5, 5}).size() == 0);
 }
 
+void test_copy_ctor(void) {
+    rect_t rect {0, 0, 5, 5};
+
+    /* Empty case */ {
+        KdTree tree1 {rect, std::vector<point_t>{}};
+        KdTree tree2 {tree1};
+
+        assert(!tree1.contains(point_t{2, 3}));
+        assert(!tree2.contains(point_t{2, 3}));
+
+        assert(tree1.rangeSearch(rect_t{1, 1, 4, 3}).size() == 0);
+        assert(tree2.rangeSearch(rect_t{1, 1, 4, 3}).size() == 0);
+    }
+
+    /* Non-empty case */ {
+        KdTree tree1 {rect, std::vector<point_t>{
+            point_t{2, 0},
+            point_t{1, 3},
+            point_t{3, 4},
+            point_t{4, 2}
+        }};
+        KdTree tree2 {tree1};
+
+        assert(tree1.contains(point_t{1, 3}));
+        assert(tree2.contains(point_t{1, 3}));
+
+        assert(!tree1.contains(point_t{3, 2}));
+        assert(!tree2.contains(point_t{3, 2}));
+
+        rect_t query1 {1, 0, 4, 4};
+        std::vector<point_t> answer1 {point_t{2, 0}, point_t{1, 3}, point_t{4, 2}};
+        assert_same_set(tree1.rangeSearch(query1), answer1);
+        assert_same_set(tree2.rangeSearch(query1), answer1);
+
+        rect_t query2 {0, 2, 4, 3};
+        std::vector<point_t> answer2 {point_t{1, 3}, point_t{3, 4}};
+        assert_same_set(tree1.rangeSearch(query2), answer2);
+        assert_same_set(tree2.rangeSearch(query2), answer2);
+    }
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("test_empty_kdtree", &test_empty_kdtree);
     tests.emplace_back("test_single_point_kdtree", &test_single_point_kdtree);
     tests.emplace_back("test_multiple_points_kdtree_1", &test_multiple_points_kdtree_1);
     tests.emplace_back("test_multiple_points_kdtree_2", &test_multiple_points_kdtree_2);
+    tests.emplace_back("test_copy_ctor", &test_copy_ctor);
 
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
